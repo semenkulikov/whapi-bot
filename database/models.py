@@ -18,6 +18,8 @@ class User(BaseModel):
     username = peewee.CharField()
     is_premium = peewee.BooleanField(null=True)
     payment_status = peewee.BooleanField(default=False)
+    path_to_invoice = peewee.CharField(default="")
+    path_to_act = peewee.CharField(default="")
 
 
 class Group(BaseModel):
