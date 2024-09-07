@@ -1,7 +1,6 @@
-# from telebot.types import Message
-#
-# from loader import bot
-# from states.states import UrlState, GetSettingsState
+from telebot.types import Message
+
+from loader import bot, app_logger
 
 
 # @bot.message_handler(state=UrlState.get_url)
