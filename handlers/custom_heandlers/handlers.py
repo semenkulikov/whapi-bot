@@ -164,7 +164,6 @@ def get_user(call):
         is_act = "Нет" if user_obj.path_to_act == "" else "Да"
         bot.send_message(call.message.chat.id, f"Имя: {user_obj.full_name}\n"
                                                f"Телеграм: @{user_obj.username}\n"
-                                               f"Премиум: {user_obj.is_premium}\n"
                                                f"Статус платежа: {user_obj.payment_status}\n"
                                                f"Отправил счет: {is_invoice}\n"
                                                f"Отправил акт: {is_act}")
