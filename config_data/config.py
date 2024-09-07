@@ -15,3 +15,4 @@ DEFAULT_COMMANDS = (
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PATH_TO_PYTHON = os.path.normpath(os.path.join(BASE_DIR, "venv/Scripts/python.exe"))
 ADMIN_ID = os.getenv('ADMIN_ID')
+ALLOWED_USERS = [ADMIN_ID,]
