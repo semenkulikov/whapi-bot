@@ -1,10 +1,17 @@
 from telebot.types import Message
 import os
-from loader import bot, app_logger
+from loader import bot, app_logger, greenAPI
 from states.states import GetDocuments, AdminPanel
-from config_data.config import ALLOWED_USERS, STATIC_PATH
+from config_data.config import (ALLOWED_USERS,
+                                STATIC_PATH,
+                                API_URL,
+                                MEDIA_URL,
+                                API_TOKEN_INSTANCE,
+                                ID_INSTANCE,
+                                ADMIN_ID_WHATSAPP)
 from database.models import User
 from keyboards.inline.accounts import users_markup
+from utils.utils import send_document_to_whatsapp, send_message_to_whatsapp
 
 
 # @bot.message_handler(state=UrlState.get_url)
@@ -74,10 +81,11 @@ def send_document_message(message: Message):
 @bot.message_handler(state=GetDocuments.get_invoice, content_types=["document"])
 def get_invoice(message: Message):
     """ Функция для приёма счёта """
-    with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
-        path = data.get("path")
-    if path is None:
-        path = os.path.normpath(os.path.join(STATIC_PATH, f"{message.from_user.id}"))
+    with (bot.retrieve_data(message.from_user.id, message.chat.id) as data):
+        path = data.get("path") if data.get("path") is not None else \
+            os.path.normpath(os.path.join(STATIC_PATH, f"{message.from_user.id}"))
+        data["file_name_invoice"] = message.document.file_name
+
     # Скачивание файла
     file_info = bot.get_file(message.document.file_id)
     downloaded_file = bot.download_file(file_info.file_path)
@@ -101,10 +109,10 @@ def get_invoice(message: Message):
 @bot.message_handler(state=GetDocuments.get_act, content_types=["document"])
 def get_act(message: Message):
     """ Функция для приёма акта """
-    with bot.retrieve_data(message.from_user.id, message.from_user.id) as data:
-        path = data.get("path")
-    if path is None:
-        path = os.path.normpath(os.path.join(STATIC_PATH, f"{message.from_user.id}"))
+    with (bot.retrieve_data(message.from_user.id, message.from_user.id) as data):
+        path = data.get("path") if data.get("path") is not None else \
+            os.path.normpath(os.path.join(STATIC_PATH, f"{message.from_user.id}"))
+        file_name_invoice = data.get("file_name_invoice") if data.get("file_name_invoice") is not None else "Счет.pdf"
     # Скачивание файла
     file_info = bot.get_file(message.document.file_id)
     downloaded_file = bot.download_file(file_info.file_path)
@@ -122,6 +130,16 @@ def get_act(message: Message):
     # Отправка следующего состояния
     bot.send_message(message.from_user.id, f"Принято акт {message.document.file_name}. Вы успешно отправили документы!")
     app_logger.info(f"Новый акт от {message.from_user.full_name}: {message.document.file_name}")
+
+    # Отправка документов в WhatsApp
+    send_message_to_whatsapp(greenAPI, ADMIN_ID_WHATSAPP, f"Внимание! Поступили документы от {user_obj.full_name}")
+    app_logger.info("Отправлено сообщение бухгалтеру")
+    send_document_to_whatsapp(greenAPI, ADMIN_ID_WHATSAPP, user_obj.path_to_invoice,
+                              file_name_invoice, "Счёт")
+    app_logger.info(f"Отправлен счет от {user_obj.full_name}")
+    send_document_to_whatsapp(greenAPI, ADMIN_ID_WHATSAPP, user_obj.path_to_act,
+                              message.document.file_name, "Акт")
+    app_logger.info(f"Отправлен акт от {user_obj.full_name}")
     bot.set_state(message.from_user.id, None)
 
 

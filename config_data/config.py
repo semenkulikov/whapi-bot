@@ -18,3 +18,9 @@ PATH_TO_PYTHON = os.path.normpath(os.path.join(BASE_DIR, "venv/Scripts/python.ex
 STATIC_PATH = os.path.normpath(os.path.join(BASE_DIR, "static"))
 ADMIN_ID = os.getenv('ADMIN_ID')
 ALLOWED_USERS = [int(ADMIN_ID),]
+
+API_URL = os.getenv("API_URL")
+MEDIA_URL = os.getenv("MEDIA_URL")
+API_TOKEN_INSTANCE = os.getenv("API_TOKEN_INSTANCE")
+ID_INSTANCE = os.getenv("ID_INSTANCE")
+ADMIN_ID_WHATSAPP = os.getenv("ADMIN_ID_WHATSAPP")

@@ -3,10 +3,13 @@ from telebot.storage import StateMemoryStorage
 from config_data import config
 from logging.handlers import RotatingFileHandler
 import logging
+from whatsapp_api_client_python import API
 
 storage = StateMemoryStorage()
 bot = TeleBot(token=config.BOT_TOKEN, state_storage=storage)
 
+# Initialize the API client
+greenAPI = API.GreenApi(config.ID_INSTANCE, config.API_TOKEN_INSTANCE)
 
 log_formatter = logging.Formatter('%(asctime)s | %(levelname)s | %(name)s - %(message)s')
 my_handler = RotatingFileHandler("bot.log", mode='a', maxBytes=5 * 1024 * 1024,
