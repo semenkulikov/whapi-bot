@@ -150,4 +150,3 @@ def get_user(call):
                                                f"Статус платежа: {user_obj.payment_status}\n"
                                                f"Отправил счет: {is_invoice}\n"
                                                f"Отправил акт: {is_act}")
-        bot.set_state(call.message.chat.id, None)
