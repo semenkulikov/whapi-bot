@@ -1,9 +1,10 @@
 from telebot.types import Message
 import os
 from loader import bot, app_logger
-from states.states import GetDocuments
+from states.states import GetDocuments, AdminPanel
 from config_data.config import ALLOWED_USERS, STATIC_PATH
 from database.models import User
+from keyboards.inline.accounts import users_markup
 
 
 # @bot.message_handler(state=UrlState.get_url)
@@ -50,7 +51,7 @@ from database.models import User
 #     bot.set_state(message.from_user.id, AccountState.get_proxy)
 
 
-@bot.message_handler(["send_documents"])
+@bot.message_handler(commands=["send_documents"])
 def send_document_message(message: Message):
     """ Функция для приема документов от пользователя """
     if message.from_user.id not in ALLOWED_USERS:
@@ -91,7 +92,8 @@ def get_invoice(message: Message):
     user_obj.save()
 
     # Отправка следующего состояния
-    bot.send_message(message.from_user.id, f"Принято счет {message.document.file_name}. Теперь отправьте акт")
+    bot.send_message(message.from_user.id, f"Принято счет {message.document.file_name}.")
+    bot.send_message(message.from_user.id, "Теперь отправьте акт")
     app_logger.info(f"Новый счет от {message.from_user.full_name}: {message.document.file_name}")
     bot.set_state(message.from_user.id, GetDocuments.get_act)
 
@@ -112,8 +114,9 @@ def get_act(message: Message):
         new_file.write(downloaded_file)
 
     # Сохранение пути в базу данных
-    user_obj = User.get(User.user_id == message.from_user.id)
+    user_obj: User = User.get(User.user_id == message.from_user.id)
     user_obj.path_to_act = act_path
+    user_obj.payment_status = True
     user_obj.save()
 
     # Отправка следующего состояния
@@ -121,3 +124,30 @@ def get_act(message: Message):
     app_logger.info(f"Новый акт от {message.from_user.full_name}: {message.document.file_name}")
     bot.set_state(message.from_user.id, None)
 
+
+@bot.message_handler(commands=["admin_panel"])
+def admin_panel(message: Message):
+    if message.from_user.id in ALLOWED_USERS:
+        bot.send_message(message.from_user.id, "Админ панель")
+        bot.send_message(message.from_user.id, "Все пользователи базы данных:", reply_markup=users_markup())
+        bot.set_state(message.from_user.id, AdminPanel.get_users)
+    else:
+        bot.send_message(message.from_user.id, "У вас недостаточно прав")
+
+
+@bot.callback_query_handler(func=None, state=AdminPanel.get_users)
+def get_user(call):
+    if call.data == "Exit":
+        bot.send_message(call.message.chat.id, "Вы успешно вышли из админ панели.")
+        bot.set_state(call.message.chat.id, None)
+    else:
+        user_obj: User = User.get_by_id(call.data)
+        is_invoice = "Нет" if user_obj.path_to_invoice == "" else "Да"
+        is_act = "Нет" if user_obj.path_to_act == "" else "Да"
+        bot.send_message(call.message.chat.id, f"Имя: {user_obj.full_name}\n"
+                                               f"Телеграм: @{user_obj.username}\n"
+                                               f"Премиум: {user_obj.is_premium}\n"
+                                               f"Статус платежа: {user_obj.payment_status}\n"
+                                               f"Отправил счет: {is_invoice}\n"
+                                               f"Отправил акт: {is_act}")
+        bot.set_state(call.message.chat.id, None)
