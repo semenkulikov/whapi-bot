@@ -1,6 +1,10 @@
 import threading
 import time
 import schedule
+import datetime
+from loader import bot, app_logger
+from config_data.config import ALLOWED_USERS
+from database.models import clear_status
 
 
 def run_continuously(interval=1):
@@ -29,11 +33,16 @@ def run_continuously(interval=1):
 
 
 def background_job():
-    print('Hello from the background thread')
+    today = datetime.datetime.now().day
+    if today in (1, 15):
+        clear_status()
+        app_logger.info("Очистка статусов пользователей завершена")
+        for user_id in ALLOWED_USERS:
+            bot.send_message(user_id, "Очистка статусов пользователей завершена успешно!")
 
 
 def run_clear():
-    schedule.every().second.do(background_job)
+    schedule.every().day.at("12:00").do(background_job)
 
     # Start the background thread
     stop_run_continuously = run_continuously()
