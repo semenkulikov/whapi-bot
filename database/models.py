@@ -35,3 +35,12 @@ class Group(BaseModel):
 
 def create_models():
     db.create_tables(BaseModel.__subclasses__())
+
+
+def clear_status():
+    users = User.select()
+    for user in users:
+        user.payment_status = False
+        user.path_to_invoice = ""
+        user.path_to_act = ""
+        user.save()
