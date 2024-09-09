@@ -5,3 +5,4 @@ requests
 telebot-calendar
 urllib3
 whatsapp-api-client-python
+schedule
