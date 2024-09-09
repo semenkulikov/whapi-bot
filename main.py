@@ -4,6 +4,8 @@ from telebot.custom_filters import StateFilter
 from utils.set_bot_commands import set_default_commands
 from database.models import create_models
 from config_data.config import ADMIN_ID
+from crone import run_clear
+
 
 if __name__ == '__main__':
     create_models()
@@ -11,6 +13,8 @@ if __name__ == '__main__':
     bot.add_custom_filter(StateFilter(bot))
     set_default_commands(bot)
     app_logger.info("Загрузка базовых команд...")
+    app_logger.info("Запуск crone...")
+    run_clear()
     app_logger.info("Бот запущен.")
     bot.send_message(ADMIN_ID, "Бот запущен.")
     bot.infinity_polling()
