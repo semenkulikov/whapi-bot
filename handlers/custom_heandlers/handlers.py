@@ -146,6 +146,7 @@ def get_act(message: Message):
 @bot.message_handler(commands=["admin_panel"])
 def admin_panel(message: Message):
     if message.from_user.id in ALLOWED_USERS:
+        app_logger.info("Администратор зашел в админ панель")
         bot.send_message(message.from_user.id, "Админ панель")
         bot.send_message(message.from_user.id, "Все пользователи базы данных:", reply_markup=users_markup())
         bot.set_state(message.from_user.id, AdminPanel.get_users)
@@ -156,6 +157,7 @@ def admin_panel(message: Message):
 @bot.callback_query_handler(func=None, state=AdminPanel.get_users)
 def get_user(call):
     if call.data == "Exit":
+        app_logger.info("Администратор вышел из админ панели")
         bot.send_message(call.message.chat.id, "Вы успешно вышли из админ панели.")
         bot.set_state(call.message.chat.id, None)
     else:
